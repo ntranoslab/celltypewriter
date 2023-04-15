@@ -21,25 +21,17 @@
 					<true/>
 					<key>Types</key>
 					<array>
-						<string>com.apple.cocoa.string</string>
+						<string>com.apple.applescript.object</string>
 					</array>
 				</dict>
 				<key>AMActionVersion</key>
-				<string>2.0.3</string>
+				<string>1.0.2</string>
 				<key>AMApplication</key>
 				<array>
 					<string>Automator</string>
 				</array>
 				<key>AMParameterProperties</key>
 				<dict>
-					<key>COMMAND_STRING</key>
-					<dict/>
-					<key>CheckedForUserDefaultShell</key>
-					<dict/>
-					<key>inputMethod</key>
-					<dict/>
-					<key>shell</key>
-					<dict/>
 					<key>source</key>
 					<dict/>
 				</dict>
@@ -49,34 +41,31 @@
 					<string>List</string>
 					<key>Types</key>
 					<array>
-						<string>com.apple.cocoa.string</string>
+						<string>com.apple.applescript.object</string>
 					</array>
 				</dict>
 				<key>ActionBundlePath</key>
-				<string>/System/Library/Automator/Run Shell Script.action</string>
+				<string>/System/Library/Automator/Run AppleScript.action</string>
 				<key>ActionName</key>
-				<string>Run Shell Script</string>
+				<string>Run AppleScript</string>
 				<key>ActionParameters</key>
 				<dict>
-					<key>COMMAND_STRING</key>
-					<string>SCRIPT_DIR="$(pwd)"
-cd "$SCRIPT_DIR" || exit
-./setup.sh
-
-</string>
-					<key>CheckedForUserDefaultShell</key>
-					<true/>
-					<key>inputMethod</key>
-					<integer>1</integer>
-					<key>shell</key>
-					<string>/bin/sh</string>
 					<key>source</key>
-					<string></string>
+					<string>on run {input, parameters}
+    set currentPath to POSIX path of ((path to me as text) &amp; "::")
+    set scriptPath to (currentPath &amp; "setup.sh")
+    
+    tell application "Terminal"
+        activate
+        do script "cd " &amp; quoted form of currentPath &amp; " &amp;&amp; chmod +x " &amp; quoted form of scriptPath &amp; " &amp;&amp; " &amp; quoted form of scriptPath
+    end tell
+end run
+</string>
 				</dict>
 				<key>BundleIdentifier</key>
-				<string>com.apple.RunShellScript</string>
+				<string>com.apple.Automator.RunScript</string>
 				<key>CFBundleVersion</key>
-				<string>2.0.3</string>
+				<string>1.0.2</string>
 				<key>CanShowSelectedItemsWhenRun</key>
 				<false/>
 				<key>CanShowWhenRun</key>
@@ -86,21 +75,17 @@ cd "$SCRIPT_DIR" || exit
 					<string>AMCategoryUtilities</string>
 				</array>
 				<key>Class Name</key>
-				<string>RunShellScriptAction</string>
+				<string>RunScriptAction</string>
 				<key>InputUUID</key>
-				<string>8AA623AB-0844-4D2B-BF4B-C11BFD8A8325</string>
+				<string>5C049ABD-2D44-4174-AE60-84C0EC2ED5A4</string>
 				<key>Keywords</key>
 				<array>
-					<string>Shell</string>
-					<string>Script</string>
-					<string>Command</string>
 					<string>Run</string>
-					<string>Unix</string>
 				</array>
 				<key>OutputUUID</key>
-				<string>39A75A63-524F-4CCD-BD7F-8D95DD84741E</string>
+				<string>32A3CCAB-EBD0-4E27-9CDF-0F2A9DB3D177</string>
 				<key>UUID</key>
-				<string>5C2019BE-37D4-42C9-8DD5-6C41110C69C9</string>
+				<string>17C9DF4D-0AA6-4502-A06F-B85585CC4FC1</string>
 				<key>UnlocalizedApplications</key>
 				<array>
 					<string>Automator</string>
@@ -110,33 +95,12 @@ cd "$SCRIPT_DIR" || exit
 					<key>0</key>
 					<dict>
 						<key>default value</key>
-						<integer>0</integer>
-						<key>name</key>
-						<string>inputMethod</string>
-						<key>required</key>
-						<string>0</string>
-						<key>type</key>
-						<string>0</string>
-						<key>uuid</key>
-						<string>0</string>
-					</dict>
-					<key>1</key>
-					<dict>
-						<key>default value</key>
-						<false/>
-						<key>name</key>
-						<string>CheckedForUserDefaultShell</string>
-						<key>required</key>
-						<string>0</string>
-						<key>type</key>
-						<string>0</string>
-						<key>uuid</key>
-						<string>1</string>
-					</dict>
-					<key>2</key>
-					<dict>
-						<key>default value</key>
-						<string></string>
+						<string>on run {input, parameters}
+	
+	(* Your script goes here *)
+	
+	return input
+end run</string>
 						<key>name</key>
 						<string>source</string>
 						<key>required</key>
@@ -144,33 +108,7 @@ cd "$SCRIPT_DIR" || exit
 						<key>type</key>
 						<string>0</string>
 						<key>uuid</key>
-						<string>2</string>
-					</dict>
-					<key>3</key>
-					<dict>
-						<key>default value</key>
-						<string></string>
-						<key>name</key>
-						<string>COMMAND_STRING</string>
-						<key>required</key>
 						<string>0</string>
-						<key>type</key>
-						<string>0</string>
-						<key>uuid</key>
-						<string>3</string>
-					</dict>
-					<key>4</key>
-					<dict>
-						<key>default value</key>
-						<string>/bin/sh</string>
-						<key>name</key>
-						<string>shell</string>
-						<key>required</key>
-						<string>0</string>
-						<key>type</key>
-						<string>0</string>
-						<key>uuid</key>
-						<string>4</string>
 					</dict>
 				</dict>
 				<key>conversionLabel</key>
@@ -178,9 +116,9 @@ cd "$SCRIPT_DIR" || exit
 				<key>isViewVisible</key>
 				<true/>
 				<key>location</key>
-				<string>655.500000:252.000000</string>
+				<string>323.000000:315.000000</string>
 				<key>nibPath</key>
-				<string>/System/Library/Automator/Run Shell Script.action/Contents/Resources/Base.lproj/main.nib</string>
+				<string>/System/Library/Automator/Run AppleScript.action/Contents/Resources/Base.lproj/main.nib</string>
 			</dict>
 			<key>isViewVisible</key>
 			<true/>

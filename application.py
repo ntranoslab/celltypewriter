@@ -21,8 +21,6 @@ from contextlib import contextmanager
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
-from config import Config
-
 import pickle
 import json
 
