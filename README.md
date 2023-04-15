@@ -1,4 +1,4 @@
-# CellTypeWriter
+# CellTypeWriter :tv:
 
 CellTypeWriter is a user-friendly web application for exploring and analyzing single-cell RNA-seq data using an interactive chat interface with an AI-based language model (GPT-4). It offers dynamic code execution and output visualization, along with adjustable settings for data input and analysis.
 
