@@ -1,0 +1,380 @@
+/* dark theme with industrial feel*/
+body {
+    font-family: 'Courier New', monospace;
+    background-color: #1c1c1c;
+    color: #c5c8c6;
+    max-width: 800px;
+    margin: 0 auto;
+/*    margin-right: auto;*/
+/*    margin-left: calc(50% - 330px); */
+    padding: 2rem;
+}
+
+
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+label {
+    font-size: 1.2rem;
+    margin-top: 0.6rem;
+}
+#gpt-message {
+    width: 100%;
+    background-color: #282a2e;
+    color: #c5c8c6;
+    border: 1px solid #373b41;
+    padding: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    resize: vertical;
+}
+
+input[type="submit"],#gpt-button {
+    display: inline-block;
+    background-color: #373b41;
+    color: #c5c8c6;
+    border: 1px solid #373b41;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+input[type="submit"]:hover,#gpt-button:hover {
+    background-color: #282a2e;
+}
+
+.waiting-dots {
+    display: inline-block;
+    position: relative;
+    width: 20px;
+    height: 20px;
+}
+
+.waiting-dots div {
+    position: absolute;
+    top: 8px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #c5c8c6;
+    animation: waiting-dots 1.2s linear infinite;
+}
+
+.waiting-dots div:nth-child(1) {
+    left: 2px;
+    animation-delay: -0.32s;
+}
+
+.waiting-dots div:nth-child(2) {
+    left: 8px;
+    animation-delay: -0.16s;
+}
+
+.waiting-dots div:nth-child(3) {
+    left: 14px;
+    animation-delay: 0s;
+}
+
+@keyframes waiting-dots {
+    0%, 80%, 100% {
+        transform: scaleY(0.4);
+    }
+    40% {
+        transform: scaleY(1);
+    }
+}
+
+pre {
+    background-color: #282a2e;
+    color: #c5c8c6;
+    border: 1px solid #373b41;
+    padding: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#plot-container {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+    justify-content: center;  
+    margin-bottom: 5rem;
+}
+
+#plot-container img {
+    max-width: 100%;
+}
+
+
+/*this scales the plot to fit width*/
+/*#plot-container {
+  width: 100%;
+  gap: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 5rem;
+}
+
+#plot-container img {
+  width: 100%;
+  height: auto;
+
+}*/
+
+
+
+#prompt-history-container {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 300px;
+    height: 100%;
+    background-color: #282a2e;
+    border-right: 1px solid #373b41;
+    padding: 1rem;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+@media (max-width: 1400px) {
+    #prompt-history-container {
+        width: 150px;
+/*        display: none;*/
+    }
+}
+
+@media (max-width: 1130px) {
+    #prompt-history-container {
+        display: none;
+    }
+}
+
+
+@media only screen and (max-width: 600px) {
+  footer {
+    display: none;
+  }
+}
+
+#prompt-history h2 {
+    font-size: .5rem;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 0.5rem;
+}
+
+#prompt-history {
+    list-style: none;
+    padding: 0;
+}
+
+#prompt-history li {
+    cursor: pointer;
+    background-color: #373b41;
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+    word-wrap: break-word;
+}
+
+#prompt-history li:hover {
+/*            background-color: #14233e;*/
+    color: white;
+}
+#reset-history-btn {
+    display: block;
+    margin: 0 auto;
+    background-color: transparent;
+    color: #a54242;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+#reset-history-btn:hover {
+    color: #cc6666;
+}
+.prompt-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #373b41;
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+    word-wrap: break-word;
+}
+
+#prompt-history li {
+  position: relative;
+  padding-right: 2rem;
+}
+
+.delete-button {
+  position: absolute;
+  top: 50%;
+  right: 5%;
+  transform: translateY(-50%);
+  background-color: transparent;
+  color: #c5c8c6;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+
+.delete-button:hover {
+    color: #ffffff;
+}
+
+/* Added this style */
+#prompt-history li {
+    position: relative;
+    padding-right: 2rem;
+}
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #1c1c1c;
+  z-index: 9999;
+  color: #c5c8c6;
+  font-size: 0.9rem;
+  padding: 1rem;
+  border-top: 1px solid #373b41;
+}
+footer a {
+  color: #c5c8c6;
+}
+
+/* Settings button */
+#settings-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 36px;
+    cursor: pointer;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: #222;
+    margin: 10% auto;
+    padding: 20px 40px;
+    border: 1px solid #888;
+    width: 60%;
+    max-width: 600px;
+    color: #ccc;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    position: relative; 
+}
+
+.close {
+    color: #aaa;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.form-label:first-of-type {
+    margin-top: 1rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.form-input,
+.form-textarea {
+    width: 100%;
+    padding: 0.5rem;
+    font-family: 'Courier New', monospace;
+    background-color: #333;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #ccc;
+    outline: none;
+    margin-right: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+    border-color: #888;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Save button dark theme */
+button[type="submit"] {
+    background-color: #333;
+    color: #ccc;
+    border: 1px solid #555;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: all 0.3s;
+}
+
+button[type="submit"]:hover {
+    background-color: #555;
+    border-color: #888;
+}
+.info-message__box {
+    display: flex;
+    flex-direction: column;
+    max-height: 1rem;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.3s, opacity 0.3s;
+    font-size: 0.8rem;
+}
+
+.info-message__box--active {
+    max-height: 50vh;
+    opacity: 1;
+    transition: max-height 0.3s, opacity 0.3s;
+}
+
+.info-message__content {
+    margin-bottom: 0px;
+}

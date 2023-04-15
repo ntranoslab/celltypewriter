@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.3/codemirror.min.css" />
+    <!-- CodeMirror JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.3/codemirror.min.js"></script>
+    <!-- Python mode for CodeMirror -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.3/mode/python/python.min.js"></script>
+    <!-- Monokai theme for CodeMirror -->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.3/theme/monokai.min.css"/> -->
+    <!-- Base16-dark theme for CodeMirror -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.3/theme/base16-dark.min.css"/>
+    <!-- Add Socket.IO client library -->
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CellTypeWriter</title>
+    
+    <script>
+    function displayFixingMessage(message) {
+        const infoMessage = document.querySelector(".info-message");
+        const infoMessageBox = document.querySelector(".info-message__box");
+
+        const messageContent = document.createElement('div');
+        messageContent.classList.add('info-message__content');
+        messageContent.innerHTML = message;
+
+        infoMessage.appendChild(messageContent);
+
+        infoMessageBox.classList.add('info-message__box--active');
+    }
+
+    function hideFixingMessage() {
+        const infoMessage = document.querySelector(".info-message");
+        const infoMessageBox = document.querySelector(".info-message__box");
+
+        infoMessageBox.classList.remove('info-message__box--active');
+        setTimeout(() => {
+            infoMessage.innerHTML = '';
+        }, 300); // Match the CSS transition duration
+    }
+
+
+
+
+
+
+
+    const socket = io.connect();
+    socket.on("info_message", (data) => {
+        displayFixingMessage(data.message);
+    });
+    async function executeCode(event) {
+        event.preventDefault();
+        const code = codeEditor.getValue();
+        const prompt = document.getElementById("gpt-message").value;
+        const prompt_history = promptHistoryStates.map(state => state.message);
+        const code_history = promptHistoryStates.map(state => state.code);
+        const output_history = promptHistoryStates.map(state => state.output);
+
+        // Show waiting dots
+        document.getElementById('waiting-dots').style.display = 'inline-block';
+
+        // Send AJAX request to server
+        const response = await fetch('/execute', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `code=${encodeURIComponent(code)}&prompt=${encodeURIComponent(prompt)}&prompt_history=${encodeURIComponent(JSON.stringify(prompt_history))}&code_history=${encodeURIComponent(JSON.stringify(code_history))}&output_history=${encodeURIComponent(JSON.stringify(output_history))}`
+        });
+
+        const data = await response.json();
+        const fixedCode = data.fixed_code;
+        const output = data.output;
+        const plotBase64List = data.plot_base64_list;
+
+
+        // Hide waiting dots
+        document.getElementById('waiting-dots').style.display = 'none';
+
+        document.getElementById('output').innerText = output;
+
+        // Display all the returned plot images
+        const plotContainer = document.getElementById('plot-container');
+        plotContainer.innerHTML = '';
+        for (const plotBase64 of plotBase64List) {
+            const img = document.createElement('img');
+            img.src = `data:image/png;base64,${plotBase64}`;
+            plotContainer.appendChild(img);
+        }
+        // Hide the info message
+        hideFixingMessage();
+
+        // Save the current code and message in the promptHistoryStates array
+        const currentHistoryState = {
+            uuid: generateUUID(),
+            code: fixedCode !== code ? fixedCode : code,
+            message: document.getElementById('gpt-message').value,
+            output: output,
+            plotBase64List: plotBase64List
+        };
+        promptHistoryStates.push(currentHistoryState);
+
+        if (fixedCode !== code) {
+            // Update the code editor with the fixed code
+            codeEditor.setValue(fixedCode);
+        }
+
+        // Add to prompt history
+        addToPromptHistory();
+    }
+    
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    function checkForShiftEnter(event) {
+        if (event.shiftKey && event.keyCode === 13) {
+            event.preventDefault();
+            executeCode(event);
+        }
+    }
+
+    // Initialize Socket.IO
+    const socketIO = io();
+
+    let promptHistoryStates = [];
+
+    // Listen for the 'gpt_reply' event
+    socketIO.on('gpt_reply', function(reply) {
+        // Insert the GPT-3 reply as Python code
+        const currentValue = codeEditor.getValue();
+        codeEditor.setValue(currentValue + reply);
+        // Set the cursor position to the end of the text
+        const line = codeEditor.lineCount() - 1;
+        const ch = codeEditor.getLine(line).length;
+        codeEditor.setCursor({ line, ch });
+
+        // Scroll to the cursor position
+        codeEditor.scrollIntoView({ line, ch });
+    });
+
+    // socketIO.on("info_message", (data) => {
+    //     displayFixingMessage(data.message);
+    // });
+
+    let codeEditor;
+
+    window.addEventListener("beforeunload", function (event) {
+            // Reset the session on the server
+            navigator.sendBeacon('/reset_session', new Blob([JSON.stringify({})], {type: 'application/json'}));
+        });
+    document.addEventListener("DOMContentLoaded", function () {
+        codeEditor = CodeMirror(document.getElementById("code"), {
+            mode: "python",
+            lineNumbers: true,
+            tabSize: 4,
+            indentUnit: 4,
+            lineWrapping: true,
+            theme: "base16-dark",
+            autofocus: true,
+            extraKeys: {
+                "Shift-Enter": function (cm) {
+                    executeCode({ preventDefault: () => {} });
+                },
+            },
+            styleActiveLine: true, 
+            styleSelectedText: true, 
+        });
+        codeEditor.getWrapperElement().style.fontSize = "16px";
+        codeEditor.getWrapperElement().style.lineHeight = "1.5";
+        codeEditor.on("keydown", function () {
+            document.getElementById("gpt-message").value = "";
+        });
+        document.getElementById("gpt-button").addEventListener("click", async (event) => {
+            event.preventDefault();
+            const message = document.getElementById("gpt-message").value;
+
+            const prompt_history = promptHistoryStates.map(state => state.message);
+            const code_history = promptHistoryStates.map(state => state.code);
+            const output_history = promptHistoryStates.map(state => state.output);
+
+            // Send the data as a JSON object
+            socketIO.emit('chat_with_gpt', { message, prompt_history, code_history, output_history});
+
+            // Clear the code text in the code editor
+            codeEditor.setValue('');
+
+        });
+
+        document.getElementById("prompt-history").addEventListener("click", function (event) {
+            if (event.target.classList.contains("prompt-item")) {
+                const promptIndex = parseInt(event.target.dataset.index, 10);
+                const promptState = promptHistoryStates[promptIndex];
+                
+                // Restore the code editor state
+                codeEditor.setValue(promptState.code);
+                document.getElementById("gpt-message").value = promptState.message;
+
+                // Restore the output and plots
+                document.getElementById("output").innerText = promptState.output;
+                const plotContainer = document.getElementById("plot-container");
+                plotContainer.innerHTML = '';
+                for (const plotBase64 of promptState.plotBase64List) {
+                    const img = document.createElement('img');
+                    img.src = `data:image/png;base64,${plotBase64}`;
+                    plotContainer.appendChild(img);
+                }
+            }
+        });
+
+        document.getElementById("reset-history-btn").addEventListener("click", function () {
+            document.getElementById("prompt-history").innerHTML = '';
+            promptHistoryStates = [];
+
+            // Hide the reset history button when the history is empty
+            document.getElementById("reset-history-btn").style.display = "none";
+
+            // Reset the session on the server
+            fetch('/reset_session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    console.log("Session reset successfully");
+                } else {
+                    console.error("Failed to reset session");
+                }
+            }).catch(error => {
+                console.error("Error resetting session:", error);
+            });
+        });
+        document.getElementById("settings-form").querySelector("button[type='submit']").addEventListener("click", async function (event) {
+            event.preventDefault();
+
+            const apiKey = document.getElementById("api-key").value;
+            const adataPath = document.getElementById("adata-path").value;
+            const projectDescription = document.getElementById("project-description").value;
+            const obsColumns = document.getElementById("obs-columns").value;
+
+            const response = await fetch("/save_settings", {
+                method: "POST",
+                body: new FormData(event.target.form),
+                headers: {
+                    "Accept": "application/json",
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.status === "success") {
+                    // Close the settings modal
+                    settingsModal.style.display = "none";
+                } else {
+                    alert("An error occurred while saving the settings.");
+                }
+            } else {
+                alert("An error occurred while saving the settings.");
+            }
+        });
+
+
+    });
+    function addToPromptHistory() {
+        const currentState = promptHistoryStates[promptHistoryStates.length - 1];
+        let promptText = currentState.message;
+        if (promptText.trim() === '') {
+            promptText = 'User Code';
+        }
+        const li = document.createElement('li');
+        li.innerText = promptText;
+        li.classList.add("prompt-item");
+        li.dataset.uuid = currentState.uuid; // Set the UUID as a data attribute
+        li.dataset.index = promptHistoryStates.length - 1; // Add the data-index attribute
+
+        const deleteButton = document.createElement('button');
+        deleteButton.innerHTML = '&times;';
+        deleteButton.classList.add('delete-button');
+
+        deleteButton.addEventListener('click', function (event) {
+            event.stopPropagation(); // Prevent triggering the li click event
+            li.remove(); // Remove the li element
+
+            // Find the index of the item in the promptHistoryStates array by comparing the UUID
+            const itemIndex = promptHistoryStates.findIndex(state => state.uuid === li.dataset.uuid);
+
+            if (itemIndex !== -1) {
+                promptHistoryStates.splice(itemIndex, 1); // Remove the corresponding history state
+            }
+                // Update the data-index attributes for the remaining entries
+            const promptItems = document.querySelectorAll('.prompt-item');
+            for (let i = 0; i < promptItems.length; i++) {
+                promptItems[i].dataset.index = i;
+            }
+
+            if (promptHistoryStates.length === 0) {
+                document.getElementById("reset-history-btn").style.display = "none";
+            }
+        });
+        li.appendChild(deleteButton); // Append the delete button to the li element
+
+        document.getElementById('prompt-history').appendChild(li);
+        // Show the reset history button when the history is not empty
+        document.getElementById("reset-history-btn").style.display = "inline-block";
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        const settingsButton = document.getElementById("settings-button");
+        const settingsModal = document.getElementById("settings-modal");
+        const closeButton = document.querySelector(".close");
+
+        settingsButton.onclick = function () {
+            settingsModal.style.display = "block";
+        };
+
+        closeButton.onclick = function () {
+            settingsModal.style.display = "none";
+        };
+
+        window.onclick = function (event) {
+            if (event.target === settingsModal) {
+                settingsModal.style.display = "none";
+            }
+        };
+
+        document.getElementById("settings-form").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const apiKey = document.getElementById("api-key").value;
+            const adataPath = document.getElementById("adata-path").value;
+            const projectDescription = document.getElementById("project-description").value;
+            const obsColumns = document.getElementById("obs-columns").value;
+            // Send the settings data to the server for processing
+            const response = await fetch('/save_settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    apiKey,
+                    adataPath,
+                    projectDescription,
+                    obsColumns
+                })
+            });
+
+            if (response.ok) {
+                settingsModal.style.display = "none";
+                // Update the interface based on the new settings, if necessary
+                // ...
+            } else {
+                alert('Error: Unable to save settings.');
+            }
+        });
+
+    });
+
+    </script>
+</head>
+<link rel="shortcut icon" type="image/png" href="https://em-content.zobj.net/thumbs/160/apple/354/television_1f4fa.png"/>
+<body>
+    <div id="settings-button">&#9881;</div>
+    <h1>CellTypeWriter &#128250;</h1>
+    <div id="prompt-history-container">
+        <h2></h2>
+        <ul id="prompt-history">
+        </ul>
+        <button id="reset-history-btn" style="display: none;">Reset History</button>
+
+    </div>
+    <form onsubmit="executeCode(event)">
+        <label for="gpt-message">Ask ChatGPT:</label><br>
+        <div style="display: flex; align-items: center;">
+            <input type="text" name="gpt-message" id="gpt-message" style="flex-grow: 1; margin-right: 0.5rem;" autocomplete="off" spellcheck="false">
+            <button id="gpt-button" style="margin-top: 0;">></button>
+        </div>
+        <div class="info-message__box"><p class="info-message"></p></div>
+        <label for="code" id="code-label">Python code:</label><br>
+        <div id="code" style="height: auto; min-height: 100px;"></div>
+        <input type="submit" value="Execute Code">
+    </form>
+    <div id="waiting-dots" class="waiting-dots" style="display: none;">
+        <div></div><div></div><div></div>
+    </div>
+    
+
+    
+    <pre id="output"></pre>
+
+    <div id="plot-container"></div>
+
+    
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <form id="settings-form">
+                <label class="form-label" for="api-key">API Key:</label>
+                <input class="form-input" type="password" id="api-key" name="api-key" value="{{ settings.api_key }}">
+                <label for="adata-path" class="form-label">adata path:</label>
+                <input type="text" id="adata-path" name="adata-path" spellcheck="false" autocomplete="off" class="form-input" value="{{ settings.adata_path }}">
+                <label for="obs-columns" class="form-label">adata.obs columns of interest:</label>
+                <input type="text" id="obs-columns" name="obs-columns" spellcheck="false" autocomplete="off" class="form-input" value="{{ settings.obs_columns|join(', ') }}">
+                <label for="project-description" spellcheck="false" autocomplete="off" class="form-label">Project Description:</label>
+                <textarea id="project-description" name="project-description" spellcheck="false" autocomplete="off" class="form-textarea">{{ settings.project_description }}</textarea>
+
+                <button type="submit">Save</button>
+            </form>
+        </div>
+    </div>
+
+
+</body>
+<footer style="text-align: center; margin-top: 1rem;">
+    <p>&#169; UCSF Ntranos Lab | <a href="https://ntranoslab.org/" target="_blank">ntranoslab.org</a> | <a href="https://twitter.com/vntranos" target="_blank" style="text-decoration: none;">@vntranos</a></p>
+</footer>
+</html>

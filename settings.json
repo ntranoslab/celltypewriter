@@ -1,0 +1,6 @@
+{
+    "api_key": "sk- ....[your_api_key].....",
+    "adata_path": "data/pbmc3k_processed.h5ad",
+    "project_description": "single cell RNA seq of ~3k PBMCs",
+    "obs_columns": "['louvain']"
+}
