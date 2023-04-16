@@ -5,6 +5,8 @@ import base64
 import re
 import ast
 
+print('Loading...')
+
 import warnings
 warnings.filterwarnings("ignore")
 
