@@ -71,8 +71,8 @@ I have already imported the following modules:
   - seaborn as sns, 
   - matplotlib.pyplot as plt"""
   
-  if not os.path.exists(log_dir):
-    os.mkdir(log_dir)
+  if not os.path.exists('./logs'):
+    os.mkdir('./logs')
 
   with open('./logs/init.log','w') as f:
     f.write(initial_prompt)
