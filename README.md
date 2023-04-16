@@ -15,11 +15,6 @@ The CellTypeWriter web app provides an interactive interface for users to explor
 
 ## Installation
 
-### MacOS
-
-1. Download the repository and open the `Setup.app` to install the application.
-2. Run the `CellTypeWriter.app` to start the application.
-
 ### command line
 
 1. Clone the repository and change to the `celltypewriter` directory:
