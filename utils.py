@@ -70,6 +70,9 @@ I have already imported the following modules:
   - numpy as np 
   - seaborn as sns, 
   - matplotlib.pyplot as plt"""
+  
+  if not os.path.exists(log_dir):
+    os.mkdir(log_dir)
 
   with open('./logs/init.log','w') as f:
     f.write(initial_prompt)
