@@ -63,9 +63,7 @@ Please note that the analysis and visualization code provided by the CellTypeWri
 
 2. **Data Examination**: Before using the generated code, carefully examine your data to ensure its quality and suitability for the intended analysis. It is essential to understand the limitations and potential biases in your data, as these can impact the validity of your results.
 
-3. **Code Validation**: Always review the generated code to ensure its correctness and relevance to your specific use case. This includes checking for accuracy, completeness, and optimization. Be prepared to modify the code as needed to meet your research objectives.
-
-4. **Continuous Learning**: Stay up-to-date with the latest advancements in your field and be aware of any updates to the tools and libraries you are using. Regularly re-evaluate the generated code to ensure it aligns with the current best practices and standards in your domain.
+3. **Code Validation**: Always review the generated code to ensure its correctness and relevance to your specific use case. This includes checking for accuracy, completeness, and alignment with current best practices and standards. Be prepared to modify the code as needed to meet your research objectives. 
 
 By using the CellTypeWriter web app, you acknowledge these considerations and agree to use the generated code responsibly. Thoroughly review and validate the generated code before incorporating it into your analysis.
 
