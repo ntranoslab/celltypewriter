@@ -29,7 +29,7 @@ source venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
-3. Activate the virtual environment:
+3. Activate the environment:
 ```
 source venv/bin/activate
 ```
