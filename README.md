@@ -29,15 +29,19 @@ source venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
-3. Start the application:
+3. Activate the virtual environment:
+```
+source venv/bin/activate
+```
+4. Start the application:
 ```
 python application.py
 ```
 ## Usage
 
-1. Run the `CellTypeWriter.app` (MacOS) or execute `python application.py` (command line).
-2. A browser window will automatically launch with the app at `http://127.0.0.1:5000/`.
-3. Interact with the application by typing questions or commands in the chat interface.
+1. Start the application by running `python application.py` (re-activate the environment if needed).
+3. A browser window will automatically launch with the app at `http://127.0.0.1:5000/`.
+4. Interact with the application by typing questions or commands in the chat interface.
 
 ## Requirements
 
