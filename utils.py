@@ -80,7 +80,7 @@ I have already imported the following modules:
   init_thread=sys_prompt + [{"role": "user", "content": \
                    initial_prompt},]
   init_thread+=[{"role": "assistant", "content": \
-                   "I understand. I will translate your commands to code."},]
+                   "```python\nprint(I understand. I will translate your commands to code.)\n```"},]
   return init_thread
 
 
