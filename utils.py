@@ -119,7 +119,7 @@ def Talk2GPT(session,data,init_thread):
         
 
         if settings['api_key'] == '' and url_status:
-            print('[Demo version -- response may be slow]')
+            print('\033[32m[no-api-key]\033[0m Demo version -- response may be slow')
             # Make the POST request
             response = requests.post(url+'generate-response-stream', json={"thread": current_thread}, stream=True)
         
