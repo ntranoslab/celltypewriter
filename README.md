@@ -2,6 +2,10 @@
 
 CellTypeWriter is a user-friendly web application for exploring and analyzing single-cell RNA-seq data using an interactive chat interface with an AI-based language model (GPT-4). It offers dynamic code execution and output visualization, along with adjustable settings for data input and analysis.
 
+:point_right: No-API? No Problem! **We've set up a 'free' version so that you can try it out.** This will be active for a few days or until funds run out : )
+- Follow instructions below to download/setup and just leave the api key field blank. Have fun! 
+
+
 ## Functionality
 The CellTypeWriter web app provides an interactive interface for users to explore and analyze single-cell RNA-seq data with the help of the GPT-4 AI model. The main features of the web app include:
 
