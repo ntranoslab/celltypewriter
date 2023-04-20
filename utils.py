@@ -176,7 +176,7 @@ def execute_and_fix_code(code,prompt,session,init_thread,socketio):
                 exec(fixed_code, exec_namespace) # Add imports to the execution context
             except Exception as e:
                 output.write('Error: ' + str(e))
-                current_error = str(e)
+                current_error = type(e).__name__ + ': ' + str(e)
 
         session['adata'] = exec_namespace['adata']
         for variable in set(exec_namespace.keys()).difference(['sns','plt','sc','pd','np','adata',]):
