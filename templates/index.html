@@ -242,7 +242,7 @@
         });
         document.getElementById("settings-form").querySelector("button[type='submit']").addEventListener("click", async function (event) {
             event.preventDefault();
-
+            const settingsModal = document.getElementById("settings-modal");
             const apiKey = document.getElementById("api-key").value;
             const adataPath = document.getElementById("adata-path").value;
             const projectDescription = document.getElementById("project-description").value;
@@ -332,35 +332,6 @@
             }
         };
 
-        document.getElementById("settings-form").addEventListener("submit", async function (event) {
-            event.preventDefault();
-
-            const apiKey = document.getElementById("api-key").value;
-            const adataPath = document.getElementById("adata-path").value;
-            const projectDescription = document.getElementById("project-description").value;
-            const obsColumns = document.getElementById("obs-columns").value;
-            // Send the settings data to the server for processing
-            const response = await fetch('/save_settings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    apiKey,
-                    adataPath,
-                    projectDescription,
-                    obsColumns
-                })
-            });
-
-            if (response.ok) {
-                settingsModal.style.display = "none";
-                // Update the interface based on the new settings, if necessary
-                // ...
-            } else {
-                alert('Error: Unable to save settings.');
-            }
-        });
 
     });
 

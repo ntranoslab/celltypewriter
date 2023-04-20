@@ -28,10 +28,16 @@ import json
 
 import openai
 
-with open('settings.json', 'r') as file:
-    settings = json.load(file)
-
-openai.api_key =  settings['api_key']
+url = "http://ctwapi-env.eba-2epssbbn.us-west-2.elasticbeanstalk.com/" 
+url_status = False
+try:
+    response = requests.get(url)
+    if response.status_code == 200:
+            url_status =  True
+    else:
+            url_status =  False
+except:
+            url_status =  False
 
 
 def init_sc(adata,description,key_obs_columns):
@@ -86,6 +92,9 @@ I have already imported the following modules:
 
 
 def Talk2GPT(session,data,init_thread):
+        with open('settings.json', 'r') as file:
+            settings = json.load(file)
+
         message = data['message']
         prompt_history = data['prompt_history']
         code_history = data['code_history']
@@ -107,43 +116,91 @@ def Talk2GPT(session,data,init_thread):
         message+=' -- Please respond with ```python code``` only no text'
         
         current_thread = init_thread + session['chat_history'] + [{"role": "user", "content": message},]
+        
 
-        response = openai.ChatCompletion.create(
-            model="gpt-4", #"gpt-3.5-turbo",
-            messages=current_thread,
-            max_tokens=500,
-            temperature=0,
-            stream=True
-        )
-        # print(response)
-        code_buffer = ""
-        emit_flag = False
+        if settings['api_key'] == '' and url_status:
+            print('[Demo version -- response may be slow]')
+            # Make the POST request
+            response = requests.post(url+'generate-response-stream', json={"thread": current_thread}, stream=True)
+        
+            code_buffer = ""
+            emit_flag = False
 
-        for chunk in response:
-            if 'content' in chunk['choices'][0]['delta'].keys():
-                reply = chunk['choices'][0]['delta']['content']
+            if response.status_code == 200:
+                
+                for line in response.iter_lines():
+                    
+                    if line:
+                        
+                        chunk=json.loads(line)
+                        if 'content' in chunk['choices'][0]['delta'].keys():
+                            reply = chunk['choices'][0]['delta']['content']
 
-                # Accumulate the text in the code buffer
-                code_buffer += reply
-                # print(code_buffer)
+                            # Accumulate the text in the code buffer
+                            code_buffer += reply
+                            # print(code_buffer)
 
-                # Check if a complete Python code block is available
-                code_match = re.search(r'```python\n(.*?)', code_buffer, re.DOTALL)
+                            # Check if a complete Python code block is available
+                            code_match = re.search(r'```python\n(.*?)', code_buffer, re.DOTALL)
 
-                if code_match:
-                    # Emit the code inside the matched block
-                    if emit_flag:
-                        # reply = reply.strip()
-                        reply = reply.rstrip('```')
-                        emit('gpt_reply', reply)
+                            if code_match:
+                                # Emit the code inside the matched block
+                                if emit_flag:
+                                    # reply = reply.strip()
+                                    reply = reply.rstrip('```')
+                                    emit('gpt_reply', reply)
 
-                    emit_flag = True
+                                emit_flag = True
 
-                    # Check for the next Python code block
-                    block_done = re.search(r'```python(.*?)```', code_buffer, re.DOTALL)
-                    if block_done:
-                        # Remove the matched block from the code buffer
-                        code_buffer = code_buffer.replace(block_done.group(0), '', 1)
+                                # Check for the next Python code block
+                                block_done = re.search(r'```python(.*?)```', code_buffer, re.DOTALL)
+                                if block_done:
+                                    # Remove the matched block from the code buffer
+                                    code_buffer = code_buffer.replace(block_done.group(0), '', 1)
+
+            elif response.status_code == 400:
+                error_data = response.json()
+                print(f"Error: {error_data['error']}")
+            else:
+                print(f"Request failed")
+        else:
+            openai.api_key =  settings['api_key']
+            response = openai.ChatCompletion.create(
+                model="gpt-4", #"gpt-3.5-turbo",
+                messages=current_thread,
+                max_tokens=500,
+                temperature=0,
+                stream=True
+            )
+            
+            code_buffer = ""
+            emit_flag = False
+
+            for chunk in response:
+                if 'content' in chunk['choices'][0]['delta'].keys():
+                    reply = chunk['choices'][0]['delta']['content']
+
+                    # Accumulate the text in the code buffer
+                    code_buffer += reply
+                    # print(code_buffer)
+
+                    # Check if a complete Python code block is available
+                    code_match = re.search(r'```python\n(.*?)', code_buffer, re.DOTALL)
+
+                    if code_match:
+                        # Emit the code inside the matched block
+                        if emit_flag:
+                            # reply = reply.strip()
+                            reply = reply.rstrip('```')
+                            emit('gpt_reply', reply)
+
+                        emit_flag = True
+
+                        # Check for the next Python code block
+                        block_done = re.search(r'```python(.*?)```', code_buffer, re.DOTALL)
+                        if block_done:
+                            # Remove the matched block from the code buffer
+                            code_buffer = code_buffer.replace(block_done.group(0), '', 1)
 
 @contextmanager
 def capture_output():
@@ -156,6 +213,9 @@ def capture_output():
 
 
 def execute_and_fix_code(code,prompt,session,init_thread,socketio):
+    with open('settings.json', 'r') as file:
+        settings = json.load(file)
+
     fixed_code = code
     output_str = ''
     plot_base64_list = []
@@ -216,15 +276,32 @@ def execute_and_fix_code(code,prompt,session,init_thread,socketio):
         # print('Error: ' +current_error))
         fix_thread += [  {"role": "user", "content": 'I got this error: '+current_error+'. Please fix this. Note: fixed code should be self-contained.' }]
         # print(fix_thread)
-        response = openai.ChatCompletion.create(
-            model="gpt-4", #"gpt-3.5-turbo",
-            messages=fix_thread,
-            max_tokens=500,
-            temperature=0,
-        )
+        if settings['api_key'] == '' and url_status:
+            # Make the POST request
+            response = requests.post(url+'generate-response', json={"thread": fix_thread}, stream=False)
+            
+            if response.status_code == 200:
+                response = response.json()
+                # print(response['choices'][0]['message']['content'])
+            elif response.status_code == 400:
+                error_data = response.json()
+                print(f"Error: {error_data['error']}")
+                break
+            else:
+                print(f"Request failed with status code: {response.status_code}")
+                break
+        else:
+            openai.api_key =  settings['api_key']
+            response = openai.ChatCompletion.create(
+                model="gpt-4", #"gpt-3.5-turbo",
+                messages=fix_thread,
+                max_tokens=500,
+                temperature=0,
+            )
+
         # print('INFO:','fixed code -- retrying')
         plt.close('all')
-
+        
         code_pattern = r"```python\n(.*?)```"
         matches = re.findall(code_pattern, response['choices'][0]['message']['content'], re.DOTALL)
 
@@ -260,15 +337,28 @@ def execute_and_fix_code(code,prompt,session,init_thread,socketio):
         {fixed_code} ///
         --- Write a very short comment on what you changed.
         """
+        if settings['api_key'] == '' and url_status:
+            # Make the POST request
+            response = requests.post(url+'generate-comment', json={"thread": [{"role": "user", "content": ask }]}, stream=False)
+            if response.status_code == 200:
+                response = response.json()
+                fixed_code = '#'+f"""Note: {response['choices'][0]['message']['content']}""" +'\n\n'+ fixed_code
+            elif response.status_code == 400:
+                error_data = response.json()
+                print(f"Error: {error_data['error']}")
+            else:
+                print(f"Request failed with status code: {response.status_code}")
+        else:
+            openai.api_key =  settings['api_key']
+            response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[  {"role": "user", "content": ask }],
+                    max_tokens=100,
+                    temperature=0,
+                )
+            fixed_code = '#'+f"""Note: {response['choices'][0]['message']['content']}""" +'\n\n'+ fixed_code
 
-        response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[  {"role": "user", "content": ask }],
-                max_tokens=100,
-                temperature=0,
-            )
-
-        fixed_code = '#'+f"""Note: {response['choices'][0]['message']['content']}""" +'\n\n'+ fixed_code
+        
 
     return fixed_code, output_str, plot_base64_list
 
